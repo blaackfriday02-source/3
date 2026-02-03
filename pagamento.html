@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <title>Pagamento</title>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, shrink-to-fit=no"/>
+<meta content="width=device-width,initial-scale=1.0, maximum-scale=1.0" name="viewport"/>
 <meta content="telephone=no" name="format-detection"/>
 <meta content="IE=edge" http-equiv="X-UA-Compatible"/>
 <script src="js/jquery.js"></script>
@@ -212,7 +212,7 @@ body[data-page="dados"] .checkout .btn-primary + .muted {
   }
   function cart(){
     try{
-      let ls = null; try{ ls = localStorage.getItem('cart'); }catch(e){} if(!ls){ try{ if(typeof get_cookie==='function') ls = get_cookie('cart'); }catch(e){} }
+      const ls = localStorage.getItem('cart');
       if(ls) return JSON.parse(ls) || [];
     }catch(e){}
     return [];

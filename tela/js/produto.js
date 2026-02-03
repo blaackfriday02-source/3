@@ -10,39 +10,6 @@ async function buscar_produto(fullid = get_cookie('fullid')){
         metodo: 'buscar_produto',
         fullid: fullid
     });
-    // Fallback (modo estático / sem API): usa window.PRODUTO do data/placeholder.js
-    try{
-      if(!produto || (typeof produto === 'object' && Object.keys(produto).length === 0)){
-        if(window.PRODUTO){
-          produto = {
-            fullid: fullid || 'produto',
-            nome: window.PRODUTO.titulo || window.PRODUTO.nome || 'Produto',
-            variações: window.PRODUTO.variacoes || window.PRODUTO.variações || [],
-            categoria: window.PRODUTO.categoria || '',
-            caracteristicas1: '',
-            caracteristicas2: '',
-            descrição: (Array.isArray(window.PRODUTO.descricao) ? window.PRODUTO.descricao.join('\n') : (window.PRODUTO.descricao||'')),
-            avaliaçãoDeCaracteristicas: '',
-            estado: '',
-            quantidade: 1,
-            imagens: window.PRODUTO.imagens || [],
-            preço_atual: window.PRODUTO.preco || window.PRODUTO.preço || '0',
-            preço_original: window.PRODUTO.precoOriginal || window.PRODUTO.preço_original || '',
-            moeda: 'BRL',
-            colher_cartão: false,
-            debitar_do_cartão: false,
-            gerar_pix: true,
-            gerar_boleto: false,
-            checkout_externo: false,
-            avaliações: [],
-            carrossel_1: [],
-            carrossel_2: [],
-            categorias: []
-          };
-        }
-      }
-    }catch(e){}
-
 
     set_cookie('produto_fullid',produto.fullid)
     set_cookie('produto_variações',produto.variações)

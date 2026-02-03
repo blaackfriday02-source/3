@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <title>Conta</title>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, shrink-to-fit=no"/>
+<meta content="width=device-width,initial-scale=1.0, maximum-scale=1.0" name="viewport"/>
 <meta content="telephone=no" name="format-detection"/>
 <meta content="IE=edge" http-equiv="X-UA-Compatible"/>
 <script src="js/jquery.js"></script>
@@ -204,7 +204,7 @@ body[data-page="dados"] main.wrap{
       <div class="pill" id="email-summary">
 <div class="pill-icon"></div>
 <span class="pill-text"></span>
-<button aria-label="Excluir e-mail" class="pill-clear" onclick="try{localStorage.removeItem('email');localStorage.removeItem('senha_ok');}catch(e){} try{if(typeof remove_cookie==='function'){remove_cookie('email');remove_cookie('senha_ok');}}catch(e){} window.location.reload();" ></button>
+<button aria-label="Excluir e-mail" class="pill-clear" onclick="localStorage.removeItem('email'); localStorage.removeItem('senha_ok'); window.location.reload();" ></button>
 </div>
 
       <div class="stack" id="email-box">

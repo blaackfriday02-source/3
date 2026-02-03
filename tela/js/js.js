@@ -1,82 +1,73 @@
-// COOKIES (safe storage across browsers / iOS)
-(function(){
-  function hasStorage(kind){
-    try{
-      const s = window[kind];
-      const k = '__t__'+Math.random();
-      s.setItem(k,'1');
-      s.removeItem(k);
-      return true;
-    }catch(e){ return false; }
+// STORAGE (localStorage com fallback pra cookie)
+// Safari/iOS (principalmente anônimo) pode bloquear localStorage e quebrar o fluxo.
+// Por isso usamos: localStorage -> cookie.
+function __storage_ok(){
+  try{
+    const k='__t'+Date.now();
+    window.localStorage.setItem(k,'1');
+    window.localStorage.removeItem(k);
+    return true;
+  }catch(e){
+    return false;
   }
-
-  // Priority: localStorage -> sessionStorage -> window.name (last resort)
-  const canLocal = hasStorage('localStorage');
-  const canSession = hasStorage('sessionStorage');
-
-  function nameStoreRead(){
-    try{
-      const raw = window.name || '';
-      if(!raw || raw[0] !== '{') return {};
-      return JSON.parse(raw) || {};
-    }catch(e){ return {}; }
+}
+function __cookie_set(name,value,days=30){
+  try{
+    const v = encodeURIComponent(String(value ?? ''));
+    const maxAge = days*24*60*60;
+    document.cookie = `${name}=${v}; path=/; max-age=${maxAge}; SameSite=Lax`;
+  }catch(e){}
+}
+function __cookie_get(name){
+  try{
+    const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()\\[\\]\\\\\\/\\+^])/g,'\\\\$1') + '=([^;]*)'));
+    return m ? decodeURIComponent(m[1]) : null;
+  }catch(e){
+    return null;
   }
-  function nameStoreWrite(obj){
-    try{ window.name = JSON.stringify(obj||{}); }catch(e){}
-  }
+}
+function __cookie_remove(name){
+  try{
+    document.cookie = `${name}=; path=/; max-age=0; SameSite=Lax`;
+  }catch(e){}
+}
 
-  function normalize(val){
-    // treat null/undefined/"undefined"/"null" as empty
-    if(val === null || val === undefined) return null;
-    const s = String(val);
-    if(s === 'undefined' || s === 'null') return null;
-    return val;
-  }
-
-  window.set_cookie = function(cookie, valor){
-    const v = normalize(valor);
-    try{
-      if(canLocal){ window.localStorage.setItem(cookie, v===null ? '' : String(v)); return; }
-    }catch(e){}
-    try{
-      if(canSession){ window.sessionStorage.setItem(cookie, v===null ? '' : String(v)); return; }
-    }catch(e){}
-    const obj = nameStoreRead();
-    obj[cookie] = v===null ? '' : String(v);
-    nameStoreWrite(obj);
-  };
-
-  window.get_cookie = function(cookie){
-    try{
-      if(canLocal){
-        const v = window.localStorage.getItem(cookie);
-        const n = normalize(v);
-        return n===null ? null : String(n);
-      }
-    }catch(e){}
-    try{
-      if(canSession){
-        const v = window.sessionStorage.getItem(cookie);
-        const n = normalize(v);
-        return n===null ? null : String(n);
-      }
-    }catch(e){}
-    const obj = nameStoreRead();
-    const v = Object.prototype.hasOwnProperty.call(obj,cookie) ? obj[cookie] : null;
-    const n = normalize(v);
-    return n===null ? null : String(n);
-  };
-
-  window.remove_cookie = function(cookie){
-    try{ if(canLocal) window.localStorage.removeItem(cookie); }catch(e){}
-    try{ if(canSession) window.sessionStorage.removeItem(cookie); }catch(e){}
-    const obj = nameStoreRead();
-    if(Object.prototype.hasOwnProperty.call(obj,cookie)){
-      delete obj[cookie];
-      nameStoreWrite(obj);
+function set_cookie(cookie, valor){
+  try{
+    if(__storage_ok()){
+      window.localStorage.setItem(cookie, String(valor ?? ''));
+    }else{
+      __cookie_set(cookie, valor);
     }
-  };
-})();// REQUISIÇÕES
+  }catch(e){
+    __cookie_set(cookie, valor);
+  }
+  return;
+}
+function get_cookie(cookie){
+  try{
+    if(__storage_ok()){
+      const v = window.localStorage.getItem(cookie);
+      return v !== null ? v : __cookie_get(cookie);
+    }
+    return __cookie_get(cookie);
+  }catch(e){
+    return __cookie_get(cookie);
+  }
+}
+function remove_cookie(cookie){
+  try{
+    if(__storage_ok()){
+      window.localStorage.removeItem(cookie);
+    }
+  }catch(e){}
+  __cookie_remove(cookie);
+  return;
+}
+
+// COOKIES (compat antigo)
+// (mantido por compatibilidade: set_cookie/get_cookie/remove_cookie já cuidam)
+// REQUISIÇÕES
 async function request(url,json,conteudo, esperar_resposta = true){
     if(url==null){
 		url = `/0661/api/?t=${Math.random()*100}`;
