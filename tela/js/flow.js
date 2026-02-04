@@ -149,8 +149,7 @@ function moneyBRL(value){
         wrap.innerHTML = '<div class="empty">Seu carrinho está vazio.</div>';
       }
       c.forEach((p, idx)=>{
-        const vlist = (p.variações ?? p.variacoes ?? p.variável ?? p.variaveis ?? p.variáveis ?? []);
-        const vars = Array.isArray(vlist) ? vlist.map(v=>`${v.atributo}: ${v.valor}`).join(' • ') : '';
+        const vars = Array.isArray(p.variações) ? p.variações.map(v=>`${v.atributo}: ${v.valor}`).join(' • ') : '';
         const item = document.createElement('div');
         item.className = 'cart-item';
         item.innerHTML = `
@@ -179,10 +178,8 @@ function moneyBRL(value){
             <button class="ci-remove material-icons" data-idx="${idx}" aria-label="Remover">delete_outline</button>
 
             ${(()=>{
-              const curRaw = (p.preco_atual ?? p.preço_atual ?? p.preco ?? p.preço ?? p.valor ?? p.value ?? '0');
-              const origRaw = (p.preco_original ?? p.preço_original ?? p.preco_antigo ?? p.preço_antigo ?? p.valor_original ?? '0');
-              const cur = Number(String(curRaw||'0').replace(/[^0-9.,]/g,'').replace(/\./g,'').replace(',', '.'));
-              const orig = Number(String(origRaw||'0').replace(/[^0-9.,]/g,'').replace(/\./g,'').replace(',', '.'));
+              const cur = Number(String(p.preço_atual||'0').replace(/[^0-9.,]/g,'').replace(/\./g,'').replace(',', '.'));
+              const orig = Number(String(p.preço_original||'0').replace(/[^0-9.,]/g,'').replace(/\./g,'').replace(',', '.'));
               if(!orig || Number.isNaN(orig) || !cur || Number.isNaN(cur) || orig<=cur){
                 return `<span class="ci-new">${moneyBRL(cur)}</span>`;
               }

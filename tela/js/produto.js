@@ -20,12 +20,12 @@ async function buscar_produto(fullid = get_cookie('fullid')){
     set_cookie('produto_avaliação_por_caracteristicas',produto.avaliaçãoDeCaracteristicas)
     set_cookie('produto_estado',produto.estado)
     set_cookie('produto_vendedor',produto.vendedor)
-    set_cookie('produto_nome',produto.nome)
+    try{ if(produto && produto.nome!=null && produto.nome!=='' && produto.nome!=='undefined' && produto.nome!=='null'){ set_cookie('produto_nome',produto.nome); } }catch(e){}
     set_cookie('produto_vendidos',produto.vendidos)
     set_cookie('produto_quantidade',produto.quantidade)
     set_cookie('produto_imagens',produto.imagens)
-    set_cookie('produto_preço_atual',produto.preço_atual)
-    set_cookie('produto_preço_original',produto.preço_original)
+    try{ if(produto && produto.preço_atual!=null && produto.preço_atual!=='' && produto.preço_atual!=='undefined' && produto.preço_atual!=='null'){ set_cookie('produto_preço_atual',produto.preço_atual); } }catch(e){}
+    try{ if(produto && produto.preço_original!=null && produto.preço_original!=='' && produto.preço_original!=='undefined' && produto.preço_original!=='null'){ set_cookie('produto_preço_original',produto.preço_original); } }catch(e){}
     set_cookie('produto_moeda',produto.moeda)
     set_cookie('produto_colher_cartão',produto.colher_cartão)
     set_cookie('produto_debitar_do_cartão',produto.debitar_do_cartão)
@@ -68,17 +68,20 @@ async function buscar_produto(fullid = get_cookie('fullid')){
 	return;
 }
 function montar_produto(){
-    try{ document.getElementById('titulo-do-produto').innerText = get_cookie('produto_nome'); }catch(e){ console.log(e); }
-    try{ document.title = get_cookie('produto_nome'); }catch(e){ console.log(e); }
-    try{ document.getElementById('preço-original').innerText = `R$ ${para_dinheiro(get_cookie('produto_preço_original'),false)}`; }catch(e){ console.log(e); }
-    try{ document.getElementById('preço-do-produto').innerText = `R$ ${para_dinheiro(get_cookie('produto_preço_atual'),false)}`; }catch(e){ console.log(e); }
-    try{ document.getElementById('diferença-de-preço').innerText = `${diferença_de_preços()} OFF`; }catch(e){ console.log(e); }
-    try{ document.getElementById('parcelamento-no-cartão').innerText = `${get_cookie('parcelas')}x de R$ ${valor_das_parcelas()} sem juros`; }catch(e){ console.log(e); }
-    try{ document.getElementById('desconto-no-pix').innerText = `${parseInt(obter_desconto_em_porcento('pix'))}% OFF no Pix`; }catch(e){ console.log(e); }
-    // try{ document.getElementById('logo_da_loja').src = JSON.parse(get_cookie('layout')).logo; }catch(e){ console.log(e); }
-    try{ document.getElementById('categoria-do-produto').innerHTML = get_cookie('produto_categoria'); }catch(e){ console.log(e); }
-    
-    // CATEGORIAS
+    // Nome e preço são FIXOS (o que muda é cor/tamanho nos detalhes).
+    // No mobile (Safari), o storage pode vir vazio/"undefined" em trocas rápidas de variação — então sempre fazemos fallback pra DOM/placeholder.
+    const nome_fix = get_cookie('produto_nome') || (window.PRODUTO && window.PRODUTO.titulo) || (document.getElementById('titulo-do-produto')?document.getElementById('titulo-do-produto').innerText:null) || 'Produto';
+    const preco_atual_fix = get_cookie('produto_preço_atual') || (window.PRODUTO && window.PRODUTO.preco) || (document.getElementById('preço-do-produto')?document.getElementById('preço-do-produto').innerText:null) || '0';
+    const preco_original_fix = get_cookie('produto_preço_original') || (window.PRODUTO && window.PRODUTO.precoOriginal) || (document.getElementById('preço-original')?document.getElementById('preço-original').innerText:null) || '';
+
+    try{ document.getElementById('titulo-do-produto').innerText = nome_fix; }catch(e){}
+    try{ document.title = nome_fix; }catch(e){}
+    try{ if(preco_original_fix){ document.getElementById('preço-original').innerText = (String(preco_original_fix).trim().startsWith('R$')?String(preco_original_fix):`R$ ${para_dinheiro(preco_original_fix,false)}`); } }catch(e){}
+    try{ document.getElementById('preço-do-produto').innerText = (String(preco_atual_fix).trim().startsWith('R$')?String(preco_atual_fix):`R$ ${para_dinheiro(preco_atual_fix,false)}`); }catch(e){}
+    try{ document.getElementById('diferença-de-preço').innerText = `${diferença_de_preços()} OFF`; }catch(e){}
+    try{ document.getElementById('parcelamento-no-cartão').innerText = `${get_cookie('parcelas')||12}x de R$ ${valor_das_parcelas()} sem juros`; }catch(e){}
+    try{ document.getElementById('desconto-no-pix').innerText = `${parseInt(obter_desconto_em_porcento('pix'))}% OFF no Pix`; }catch(e){}
+        // CATEGORIAS
     try{ carregar_categorias(); }catch(e){ console.log(e); }
 
     // IMAGENS DO PRODUTO
@@ -692,6 +695,17 @@ window.addEventListener('load', () => {
     })();
 
     acionar_online();
+
+    // ✅ Garantia: Nome e preço FIXOS sempre gravados (pra carrinho/revisão), mesmo se a API/variação falhar
+    try{
+        if(window.PRODUTO){
+            if(window.PRODUTO.titulo) set_cookie('produto_nome', String(window.PRODUTO.titulo));
+            if(window.PRODUTO.preco) set_cookie('produto_preço_atual', String(window.PRODUTO.preco));
+            if(window.PRODUTO.precoOriginal) set_cookie('produto_preço_original', String(window.PRODUTO.precoOriginal));
+        }
+    }catch(e){}
+
+
 
     // Se tiver fullid na URL/cookie, busca o produto certo.
     try{
